@@ -8,8 +8,13 @@
  * @module
  */
 
+import type * as analyses from "../analyses.js";
 import type * as auth from "../auth.js";
+import type * as files from "../files.js";
+import type * as github from "../github.js";
 import type * as http from "../http.js";
+import type * as sessions from "../sessions.js";
+import type * as unitTests from "../unitTests.js";
 
 import type {
   ApiFromModules,
@@ -26,8 +31,13 @@ import type {
  * ```
  */
 declare const fullApi: ApiFromModules<{
+  analyses: typeof analyses;
   auth: typeof auth;
+  files: typeof files;
+  github: typeof github;
   http: typeof http;
+  sessions: typeof sessions;
+  unitTests: typeof unitTests;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
 
