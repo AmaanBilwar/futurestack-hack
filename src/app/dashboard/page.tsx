@@ -2144,6 +2144,7 @@ export default function DashboardPage() {
                             Back to Analysis
                           </Button>
                           <Button
+                            disabled
                             onClick={() => {
                               if (
                                 unitTestResults.length > 0 &&
@@ -2157,17 +2158,17 @@ export default function DashboardPage() {
                               }
                             }}
                             className="bg-green-600 hover:bg-green-700"
-                            disabled={
-                              !unitTestResults.length ||
-                              !unitTestResults.every(
-                                (result) => result.status === "completed",
-                              ) ||
-                              isRunningTests
-                            }
+                            // disabled={
+                            //   !unitTestResults.length ||
+                            //   !unitTestResults.every(
+                            //     (result) => result.status === "completed"
+                            //   ) ||
+                            //   isRunningTests
+                            // }
                           >
                             {isRunningTests
                               ? "Executing Tests..."
-                              : "Execute & Evaluate"}
+                              : "Execute & Evaluate (feature coming soon)"}
                           </Button>
                         </div>
                       </div>
