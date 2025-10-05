@@ -23,7 +23,7 @@ export async function applyRefactor(
       command: "npx",
       args: ["@morph-llm/morph-fast-apply"],
       env: {
-        MORPH_API_KEY: process.env.MORPH_API_KEY || "",
+        MORPH_API_KEY: process.env.MORPHLLM_API_KEY || "",
         ALL_TOOLS: "true",
       },
     });
@@ -44,7 +44,7 @@ export async function applyRefactor(
         "When using edit_file:",
         "- Provide target_file (string): which file to modify.",
         "- Provide instructions (string): a single first-person sentence explaining what you are changing to disambiguate.",
-        "- Provide code_edit (string): ONLY the precise lines you wish to change; use // ... existing code ... to omit unchanged sections.",
+        "- Provide code_edit (string): It MUST contain the FULL, FINAL FILE CONTENTS. Do NOT use placeholders like '// ... existing code ...', '... existing code ...', or diff markers.",
         "If creating a new refactored file, set target_file to the provided path and include the full file contents in one code_edit block.",
         "If tools are unavailable, output ONLY the full refactored file contents — no headings, no steps, no explanations, no markdown fences.",
       ].join("\n"),
@@ -53,6 +53,10 @@ export async function applyRefactor(
         "Return ONLY one of the following:",
         "1) A single edit_file tool call creating a new refactored file; or",
         "2) If tools are unavailable, ONLY the full refactored file contents (no steps, no commentary, no fences).",
+        "MANDATORY RULES:",
+        "- The refactored output must be the FULL, self-contained file contents.",
+        "- Do NOT include placeholders such as '// ... existing code ...', '/* ... existing code ... */', or '...'.",
+        "- Do NOT output unified diffs or partial hunks (no lines starting with '+' or '-' or '@@').",
         refactoredTargetPath
           ? `\nMANDATORY: Use edit_file.target_file = ${refactoredTargetPath}`
           : "",
@@ -64,7 +68,8 @@ export async function applyRefactor(
       temperature: 0,
     });
 
-    return extractRefactoredContents(cleanMarkdownSyntax(text));
+    // Prefer extracting from raw text so we can detect fenced blocks and validate full contents.
+    return extractRefactoredContents(text, code);
   } catch (error) {
     console.error("Refactor error:", error);
     throw new Error(
@@ -83,7 +88,20 @@ function cleanMarkdownSyntax(text: string): string {
   return cleaned.trim();
 }
 
-function extractRefactoredContents(text: string): string {
+function isLikelyPartial(content: string, originalLines?: number): boolean {
+  const hasPlaceholder = /\.\.\.\s*existing code\s*\.\.\.|\/\/\s*\.\.\.\s*existing code|\/\*\s*\.\.\.\s*existing code\s*\*\//i.test(
+    content,
+  );
+  const hasDiffMarkers = /^(\+|\-|@@)/m.test(content);
+  const mentionsEditFile = /code_edit\s*\=|edit_file\./i.test(content);
+  const tooShort =
+    typeof originalLines === "number" && originalLines > 0
+      ? content.split(/\r?\n/).length < Math.max(10, Math.floor(originalLines * 0.4))
+      : false;
+  return hasPlaceholder || hasDiffMarkers || mentionsEditFile || !!tooShort;
+}
+
+function extractRefactoredContents(text: string, originalCode?: string): string {
   if (!text) return "";
 
   // 1) If model returned an edit_file call, extract code_edit contents (support both triple double/single quotes)
@@ -91,7 +109,11 @@ function extractRefactoredContents(text: string): string {
   const tripleSingle = /code_edit\s*=\s*'''([\s\S]*?)'''/;
   let match = text.match(tripleDouble) || text.match(tripleSingle);
   if (match && match[1]) {
-    return match[1].trim();
+    const candidate = match[1].trim();
+    if (!isLikelyPartial(candidate, originalCode?.split(/\r?\n/).length)) {
+      return candidate;
+    }
+    // If likely partial, continue searching for a better candidate.
   }
 
   // 1b) Sometimes code_edit appears with additional property syntax; grab the first triple-quoted block after the code_edit token
@@ -100,15 +122,27 @@ function extractRefactoredContents(text: string): string {
     const after = text.slice(codeEditIndex);
     const anyTriple = after.match(/("""|''')([\s\S]*?)\1/);
     if (anyTriple && anyTriple[2]) {
-      return anyTriple[2].trim();
+      const candidate = anyTriple[2].trim();
+      if (!isLikelyPartial(candidate, originalCode?.split(/\r?\n/).length)) {
+        return candidate;
+      }
     }
   }
 
-  // 2) Try fenced code blocks
-  const fenceMatch = text.match(/```[a-zA-Z]*\n([\s\S]*?)```/);
-  if (fenceMatch && fenceMatch[1]) {
-    return fenceMatch[1].trim();
+  // 2) Try fenced code blocks (prefer the longest block as most likely full file)
+  const fenceRegex = /```[a-zA-Z]*\n([\s\S]*?)```/g;
+  let fenceMatch: RegExpExecArray | null;
+  let bestBlock = "";
+  while ((fenceMatch = fenceRegex.exec(text)) !== null) {
+    const block = fenceMatch[1].trim();
+    if (
+      block.length > bestBlock.length &&
+      !isLikelyPartial(block, originalCode?.split(/\r?\n/).length)
+    ) {
+      bestBlock = block;
+    }
   }
+  if (bestBlock) return bestBlock;
 
   // 3) Try after a marker like "Here's the refactored code:" up to the end
   const markerIdx = text.toLowerCase().indexOf("here's the refactored code");
@@ -123,11 +157,13 @@ function extractRefactoredContents(text: string): string {
       collected.push(line);
     }
     const candidate = collected.join("\n").trim();
-    if (candidate) return candidate;
+    if (candidate && !isLikelyPartial(candidate, originalCode?.split(/\r?\n/).length)) {
+      return candidate;
+    }
   }
 
-  // 4) Fallback: return the whole text (already cleaned of fences) minus obvious step headings
-  const filtered = text
+  // 4) Fallback: return the whole text (cleaned of fences) minus obvious step headings
+  const filtered = cleanMarkdownSyntax(text)
     .split(/\r?\n/)
     .filter(
       (l) =>
