@@ -119,7 +119,7 @@ export default function DashboardPage() {
   const githubToken = useQuery(api.github.getGithubToken);
   const [step, setStep] = useState<1 | 2 | 3 | 4 | 5>(1);
   const [activeTab, setActiveTab] = useState<"upload" | "files" | "sessions">(
-    "upload"
+    "upload",
   );
   const [currentStep, setCurrentStep] = useState<DashboardStep>("upload");
   const [repos, setRepos] = useState<GithubRepo[]>([]);
@@ -138,7 +138,7 @@ export default function DashboardPage() {
   const [isRunningTests, setIsRunningTests] = useState<boolean>(false);
   const [isApplyingRefactor, setIsApplyingRefactor] = useState<boolean>(false);
   const [refactoredFiles, setRefactoredFiles] = useState<Map<string, string>>(
-    new Map()
+    new Map(),
   );
   const [discoveredFiles, setDiscoveredFiles] = useState<DiscoveredFile[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<FileSelection[]>([]);
@@ -159,7 +159,7 @@ export default function DashboardPage() {
       discoveredFiles,
       fileSearchQuery,
       (file) => `${file.name} ${file.path}`,
-      { threshold: 0.1 }
+      { threshold: 0.1 },
     );
 
     return matches.map((match) => match.item);
@@ -181,14 +181,14 @@ export default function DashboardPage() {
       uploadMode === "github"
         ? Boolean(selectedRepo) && selectedFiles.length > 0
         : uploadedFiles.length > 0,
-    [selectedRepo, uploadMode, uploadedFiles, selectedFiles]
+    [selectedRepo, uploadMode, uploadedFiles, selectedFiles],
   );
 
   const canGoToStep3 = useMemo(
     () =>
       analysisResults.length > 0 &&
       analysisResults.every((result) => result.status === "completed"),
-    [analysisResults]
+    [analysisResults],
   );
 
   const performCodeAnalysis = async (file: UploadedFile) => {
@@ -262,13 +262,13 @@ export default function DashboardPage() {
           prev.map((result) =>
             result.fileId === file.id
               ? { ...result, analysis, status: "completed" as const }
-              : result
-          )
+              : result,
+          ),
         );
 
         // Update the uploaded file with analysis
         setUploadedFiles((prev) =>
-          prev.map((f) => (f.id === file.id ? { ...f, analysis } : f))
+          prev.map((f) => (f.id === file.id ? { ...f, analysis } : f)),
         );
       } catch (error) {
         setAnalysisResults((prev) =>
@@ -279,8 +279,8 @@ export default function DashboardPage() {
                   status: "error" as const,
                   analysis: "Failed to analyze code",
                 }
-              : result
-          )
+              : result,
+          ),
         );
       }
     }
@@ -321,8 +321,8 @@ export default function DashboardPage() {
           prev.map((result) =>
             result.fileId === file.path
               ? { ...result, analysis, status: "completed" as const }
-              : result
-          )
+              : result,
+          ),
         );
       } catch (fileError) {
         setAnalysisResults((prev) =>
@@ -333,8 +333,8 @@ export default function DashboardPage() {
                   status: "error" as const,
                   analysis: "Failed to analyze code",
                 }
-              : result
-          )
+              : result,
+          ),
         );
       }
     }
@@ -344,7 +344,7 @@ export default function DashboardPage() {
 
   const generateUnitTestsForFile = async (
     file: UploadedFile,
-    analysis: string
+    analysis: string,
   ) => {
     try {
       const response = await fetch("/api/unit-tests", {
@@ -386,7 +386,7 @@ export default function DashboardPage() {
 
   const runUnitTestsWithMicrosandbox = async (
     file: UploadedFile,
-    unitTests: string
+    unitTests: string,
   ) => {
     try {
       const response = await fetch("/api/unit-tests/run", {
@@ -399,7 +399,7 @@ export default function DashboardPage() {
           sourceCode: file.content,
           language: getLanguageFromFileName(file.name),
           dependencies: getDependenciesForLanguage(
-            getLanguageFromFileName(file.name)
+            getLanguageFromFileName(file.name),
           ),
         }),
       });
@@ -482,7 +482,7 @@ export default function DashboardPage() {
   };
   const downloadAllUnitTests = () => {
     const ready = unitTestResults.filter(
-      (r) => r.status === "completed" && r.unitTests
+      (r) => r.status === "completed" && r.unitTests,
     );
     if (!ready.length) return;
     for (const r of ready) {
@@ -538,7 +538,7 @@ export default function DashboardPage() {
       let file = uploadedFiles.find((f) => f.id === analysisResult.fileId);
       if (!file && uploadMode === "github") {
         const selectedFile = selectedFiles.find(
-          (f) => f.path === analysisResult.fileId
+          (f) => f.path === analysisResult.fileId,
         );
         if (selectedFile) {
           file = {
@@ -556,15 +556,15 @@ export default function DashboardPage() {
       try {
         const unitTests = await generateUnitTestsForFile(
           file,
-          analysisResult.analysis
+          analysisResult.analysis,
         );
 
         setUnitTestResults((prev) =>
           prev.map((result) =>
             result.fileId === analysisResult.fileId
               ? { ...result, unitTests, status: "completed" as const }
-              : result
-          )
+              : result,
+          ),
         );
       } catch (error) {
         setUnitTestResults((prev) =>
@@ -575,8 +575,8 @@ export default function DashboardPage() {
                   status: "error" as const,
                   unitTests: "Failed to generate unit tests",
                 }
-              : result
-          )
+              : result,
+          ),
         );
       }
     }
@@ -603,7 +603,7 @@ export default function DashboardPage() {
       let file = uploadedFiles.find((f) => f.id === unitTestResult.fileId);
       if (!file && uploadMode === "github") {
         const selectedFile = selectedFiles.find(
-          (f) => f.path === unitTestResult.fileId
+          (f) => f.path === unitTestResult.fileId,
         );
         if (selectedFile) {
           file = {
@@ -621,20 +621,20 @@ export default function DashboardPage() {
       try {
         const testResults = await runUnitTestsWithMicrosandbox(
           file,
-          unitTestResult.unitTests
+          unitTestResult.unitTests,
         );
 
         setUnitTestResults((prev) =>
           prev.map((result) =>
             result.fileId === unitTestResult.fileId
               ? { ...result, testResults }
-              : result
-          )
+              : result,
+          ),
         );
       } catch (error) {
         console.error(
           `Error running tests for ${unitTestResult.fileName}:`,
-          error
+          error,
         );
         setUnitTestResults((prev) =>
           prev.map((result) =>
@@ -649,8 +649,8 @@ export default function DashboardPage() {
                     stdout: "",
                   },
                 }
-              : result
-          )
+              : result,
+          ),
         );
       }
     }
@@ -666,7 +666,7 @@ export default function DashboardPage() {
         if (!githubToken) return; // still or unauthenticated
 
         const response = await fetch(
-          `/api/github/repos?token=${encodeURIComponent(githubToken as string)}`
+          `/api/github/repos?token=${encodeURIComponent(githubToken as string)}`,
         );
         if (!response.ok) {
           throw new Error("Failed to fetch repositories");
@@ -734,7 +734,7 @@ export default function DashboardPage() {
   }
 
   const handleFileUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const files = event.target.files;
     if (!files) return;
@@ -814,7 +814,7 @@ export default function DashboardPage() {
         ".config",
       ];
       const isCodeFile = codeExtensions.some((ext) =>
-        file.name.toLowerCase().endsWith(ext)
+        file.name.toLowerCase().endsWith(ext),
       );
 
       if (!isCodeFile) {
@@ -917,7 +917,7 @@ export default function DashboardPage() {
 
   const handleFileSelection = async (
     file: DiscoveredFile,
-    selected: boolean
+    selected: boolean,
   ) => {
     if (!selectedRepo || !githubToken) return;
 
@@ -1001,7 +1001,7 @@ export default function DashboardPage() {
 
       if (failedFiles.length > 0) {
         alert(
-          `Failed to load ${failedFiles.length} file(s): ${failedFiles.join(", ")}`
+          `Failed to load ${failedFiles.length} file(s): ${failedFiles.join(", ")}`,
         );
       }
     } catch (error) {
@@ -1276,11 +1276,11 @@ export default function DashboardPage() {
 
                                   try {
                                     const response = await fetch(
-                                      `/api/github/repos?token=${encodeURIComponent(githubToken as string)}`
+                                      `/api/github/repos?token=${encodeURIComponent(githubToken as string)}`,
                                     );
                                     if (!response.ok) {
                                       throw new Error(
-                                        "Failed to fetch repositories"
+                                        "Failed to fetch repositories",
                                       );
                                     }
                                     const data = await response.json();
@@ -1328,7 +1328,7 @@ export default function DashboardPage() {
                                             token: githubToken as string,
                                             ref: branchName,
                                           }),
-                                        }
+                                        },
                                       );
                                       if (response.ok) {
                                         const files = await response.json();
@@ -1432,7 +1432,7 @@ export default function DashboardPage() {
                                               (showing {startIndex + 1}-
                                               {Math.min(
                                                 endIndex,
-                                                filteredFiles.length
+                                                filteredFiles.length,
                                               )}{" "}
                                               of {filteredFiles.length})
                                             </span>
@@ -1474,12 +1474,12 @@ export default function DashboardPage() {
                                           <div className="flex items-center gap-3 flex-1">
                                             <Checkbox
                                               checked={selectedFiles.some(
-                                                (f) => f.path === file.path
+                                                (f) => f.path === file.path,
                                               )}
                                               onCheckedChange={(checked) =>
                                                 handleFileSelection(
                                                   file,
-                                                  checked as boolean
+                                                  checked as boolean,
                                                 )
                                               }
                                               disabled={
@@ -1499,14 +1499,12 @@ export default function DashboardPage() {
                                                   {file.summary && (
                                                     <span>
                                                       {" "}
-                                                      • {
-                                                        file.summary.lineCount
-                                                      }{" "}
+                                                      • {file.summary.lineCount}{" "}
                                                       lines
                                                     </span>
                                                   )}
                                                   {loadingFiles.has(
-                                                    file.path
+                                                    file.path,
                                                   ) && (
                                                     <span className="ml-2 text-blue-600">
                                                       Loading...
@@ -1535,7 +1533,7 @@ export default function DashboardPage() {
                                                   e.preventDefault();
                                                   if (currentPage > 1) {
                                                     setCurrentPage(
-                                                      currentPage - 1
+                                                      currentPage - 1,
                                                     );
                                                   }
                                                 }}
@@ -1550,14 +1548,14 @@ export default function DashboardPage() {
                                             {/* Page Numbers */}
                                             {Array.from(
                                               { length: totalPages },
-                                              (_, i) => i + 1
+                                              (_, i) => i + 1,
                                             ).map((pageNum) => {
                                               // Show first page, last page, current page, and pages around current
                                               const showPage =
                                                 pageNum === 1 ||
                                                 pageNum === totalPages ||
                                                 Math.abs(
-                                                  pageNum - currentPage
+                                                  pageNum - currentPage,
                                                 ) <= 1;
 
                                               if (!showPage) {
@@ -1617,7 +1615,7 @@ export default function DashboardPage() {
                                                     currentPage < totalPages
                                                   ) {
                                                     setCurrentPage(
-                                                      currentPage + 1
+                                                      currentPage + 1,
                                                     );
                                                   }
                                                 }}
@@ -2092,7 +2090,7 @@ export default function DashboardPage() {
                                 disabled={
                                   !unitTestResults.some(
                                     (r) =>
-                                      r.status === "completed" && r.unitTests
+                                      r.status === "completed" && r.unitTests,
                                   )
                                 }
                               >
@@ -2135,7 +2133,7 @@ export default function DashboardPage() {
                                       </Button>
                                     </div>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           )}
@@ -2150,7 +2148,7 @@ export default function DashboardPage() {
                               if (
                                 unitTestResults.length > 0 &&
                                 unitTestResults.every(
-                                  (result) => result.status === "completed"
+                                  (result) => result.status === "completed",
                                 )
                               ) {
                                 runAllUnitTests();
@@ -2162,7 +2160,7 @@ export default function DashboardPage() {
                             disabled={
                               !unitTestResults.length ||
                               !unitTestResults.every(
-                                (result) => result.status === "completed"
+                                (result) => result.status === "completed",
                               ) ||
                               isRunningTests
                             }

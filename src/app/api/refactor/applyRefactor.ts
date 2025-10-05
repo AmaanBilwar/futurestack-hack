@@ -3,7 +3,6 @@ import { generateText } from "ai";
 import { experimental_createMCPClient as createMCPClient } from "ai";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 
-
 const openRouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY!,
 });
@@ -130,13 +129,14 @@ function extractRefactoredContents(text: string): string {
   // 4) Fallback: return the whole text (already cleaned of fences) minus obvious step headings
   const filtered = text
     .split(/\r?\n/)
-    .filter((l) =>
-      // Drop headings and enumerations
-      !/^\s*#{1,6}\s/.test(l) &&
-      !/^\s*\d+\./.test(l) &&
-      // Drop obvious wrapper lines if the tool call leaked
-      !/^\s*import\s+edit_file/.test(l) &&
-      !/^\s*edit_file\./.test(l)
+    .filter(
+      (l) =>
+        // Drop headings and enumerations
+        !/^\s*#{1,6}\s/.test(l) &&
+        !/^\s*\d+\./.test(l) &&
+        // Drop obvious wrapper lines if the tool call leaked
+        !/^\s*import\s+edit_file/.test(l) &&
+        !/^\s*edit_file\./.test(l),
     )
     .join("\n")
     .trim();

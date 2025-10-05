@@ -5,7 +5,12 @@ export const maxDuration = 30;
 const model = process.env.META_MODEL;
 console.log(model);
 export async function POST(req: Request) {
-  const { messages, code, analysis }: { messages: UIMessage[], code: string, analysis: string } = await req.json();
+  const {
+    messages,
+    code,
+    analysis,
+  }: { messages: UIMessage[]; code: string; analysis: string } =
+    await req.json();
 
   const result = streamText({
     model: openrouter.chat(model!),
