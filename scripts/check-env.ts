@@ -30,5 +30,8 @@ try {
     console.log("Available GitHub functions:", Object.keys(api.github));
   }
 } catch (error) {
-  console.log("❌ Convex API not available:", error.message);
+  console.log(
+    "❌ Convex API not available:",
+    error instanceof Error ? error.message : String(error),
+  );
 }
