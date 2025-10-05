@@ -7,7 +7,11 @@ export const createAnalysis = mutation({
     fileId: v.id("files"),
     fileName: v.string(),
     analysis: v.string(),
-    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("error"),
+    ),
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -29,15 +33,17 @@ export const updateAnalysis = mutation({
   args: {
     analysisId: v.id("analyses"),
     analysis: v.optional(v.string()),
-    status: v.optional(v.union(v.literal("pending"), v.literal("completed"), v.literal("error"))),
+    status: v.optional(
+      v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    ),
   },
   handler: async (ctx, args) => {
     const updates: any = {};
-    
+
     if (args.analysis !== undefined) {
       updates.analysis = args.analysis;
     }
-    
+
     if (args.status !== undefined) {
       updates.status = args.status;
       if (args.status === "completed") {
@@ -74,7 +80,7 @@ export const getUserAnalyses = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     if (!args.userId) return [];
-    
+
     return await ctx.db
       .query("analyses")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
