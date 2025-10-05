@@ -2,7 +2,7 @@
 
 Your AI-assisted code review, unit-test generation, and automated refactoring workflow — designed to slash review toil so developers can focus on shipping.
 
-Website live at: [codemarshall.vercel.app](https://codemarshall.vercel.app/)  
+
 
 ### Why this matters (Potential Impact)
 - **Problem**: Developers spend significant time reading, reviewing, and writing tests — work that is critical but repetitive and slow.
@@ -67,14 +67,13 @@ BETTER_AUTH_SECRET=replace-with-random-32-bytes-base64
 GITHUB_CLIENT_ID=
 GITHUB_CLIENT_SECRET=
 
-# Optional: Personal Access Token (if your app uses it)
+# Optional: Personal Access Token (refer to github mcp docs to know more)
 GITHUB_PAT=
 
 # AI providers (set whichever you use)
 OPENROUTER_API_KEY=
-OPENAI_API_KEY=
 
-# Optional: MorphLLM
+# MorphLLM
 MORPHLLM_API_KEY=
 
 # Default model selection
@@ -125,7 +124,7 @@ Open `http://localhost:3000` and sign in with GitHub.
 ### Live demo
 - Visit the deployed app: [codemarshall.onrender.com](https://codemarshall.onrender.com)
 
-
+> chances are this deployment isnt working because vercel and github are not friends, so youre gonna have to test it our locally. Sorry for the inconvenience, but I cant do much if Github cant solve 2 year old issues with OAuth apps  
 ### Acknowledgements
 - Thanks to the broader OSS ecosystem, Vercel AI SDK, OpenRouter, and Convex for enabling rapid iteration.
 
