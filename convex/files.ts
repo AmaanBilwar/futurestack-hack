@@ -57,12 +57,12 @@ export const createFile = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    // TODO: Fix storage API - temporarily using a placeholder storage ID
-    const storageId = "placeholder" as any;
+    // Store content directly in the database for now
+    // This is a temporary solution until we implement proper file upload flow
 
     const fileId = await ctx.db.insert("files", {
       name: args.name,
-      storageId: storageId,
+      content: args.content, // Store content directly
       type: args.type,
       size: args.size,
       userId: args.userId,
@@ -81,11 +81,24 @@ export const getFile = query({
   },
 });
 
-// Get file content from storage
+// Get file content from storage or database
 export const getFileContent = query({
-  args: { storageId: v.id("_storage") },
+  args: { fileId: v.id("files") },
   handler: async (ctx, args) => {
-    // TODO: Fix storage API - temporarily returning null
+    const file = await ctx.db.get(args.fileId);
+    if (!file) return null;
+
+    // If content is stored directly in the database, return it
+    if (file.content) {
+      return file.content;
+    }
+
+    // If using storage, get from storage (not implemented yet)
+    if (file.storageId) {
+      // TODO: Implement storage retrieval
+      return null;
+    }
+
     return null;
   },
 });

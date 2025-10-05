@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { fuzzySearch, FuzzyMatch } from "@/lib/fuzzy-search";
+import { Spinner } from "./spinner";
 import { cn } from "@/lib/utils";
 
 export interface SearchableDropdownProps<T> {
@@ -74,7 +75,8 @@ export function SearchableDropdown<T>({
   // Perform fuzzy search when query or items change
   useEffect(() => {
     const results = fuzzySearch(items, query, getText, {
-      threshold: 0.1,
+      threshold: 0.5,
+      minQueryLength: 2,
       includeOriginal: true,
     });
     setMatches(results);
@@ -86,6 +88,13 @@ export function SearchableDropdown<T>({
       setTimeout(() => searchInputRef.current?.focus(), 100);
     }
   }, [open, showSearch]);
+
+  // Prevent focus loss during search
+  const handleInputFocus = () => {
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  };
 
   // Handle keyboard navigation
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -105,10 +114,26 @@ export function SearchableDropdown<T>({
     setQuery("");
   };
 
+  // Prevent dropdown from closing when clicking on search input
+  const handleDropdownOpenChange = (newOpen: boolean) => {
+    if (
+      !newOpen &&
+      searchInputRef.current &&
+      document.activeElement === searchInputRef.current
+    ) {
+      // Don't close if the search input is focused
+      return;
+    }
+    setOpen(newOpen);
+    if (!newOpen) {
+      setQuery("");
+    }
+  };
+
   const displayText = selected ? getText(selected) : triggerPlaceholder;
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={open} onOpenChange={handleDropdownOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button
           disabled={disabled || loading}
@@ -126,7 +151,7 @@ export function SearchableDropdown<T>({
         ref={dropdownRef}
         className={cn(
           "w-[var(--radix-dropdown-menu-trigger-width)]",
-          contentClassName
+          contentClassName,
         )}
         style={{ maxHeight }}
       >
@@ -141,7 +166,9 @@ export function SearchableDropdown<T>({
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onFocus={handleInputFocus}
                   className="pl-8"
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -153,7 +180,7 @@ export function SearchableDropdown<T>({
           {loading ? (
             <DropdownMenuItem disabled>
               <div className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                <Spinner className="h-4 w-4" />
                 {loadingText}
               </div>
             </DropdownMenuItem>

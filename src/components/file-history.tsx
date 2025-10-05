@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "./ui/badge";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -198,7 +199,7 @@ export default function FileHistory({
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <Spinner className="h-8 w-8 text-blue-600" />
         <span className="ml-2">Loading files...</span>
       </div>
     );

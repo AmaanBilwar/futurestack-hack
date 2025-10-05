@@ -5,7 +5,8 @@ export default defineSchema({
   // File storage table
   files: defineTable({
     name: v.string(),
-    storageId: v.id("_storage"),
+    storageId: v.optional(v.id("_storage")),
+    content: v.optional(v.string()), // For storing content directly when not using storage
     type: v.string(),
     size: v.number(),
     userId: v.optional(v.string()),

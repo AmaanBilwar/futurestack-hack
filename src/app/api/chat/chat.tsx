@@ -2,39 +2,20 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
-import { Markdown } from "@/components/ui/markdown";
-import { authClient } from "@/lib/auth-client";
 
 export default function Chat() {
   const [input, setInput] = useState("");
-  const session = authClient.useSession();
-
-  const { messages, sendMessage } = useChat({
-    onFinish: (message) => {
-      console.log("Message finished:", message);
-    },
-  });
+  const { messages, sendMessage } = useChat();
   return (
     <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
       {messages.map((message) => (
-        <div key={message.id} className="space-y-1">
-          <div className="text-xs text-muted-foreground">
-            {message.role === "user" ? "User" : "AI"}
-          </div>
+        <div key={message.id} className="whitespace-pre-wrap">
+          {message.role === "user" ? "User: " : "AI: "}
           {message.parts.map((part, i) => {
             switch (part.type) {
               case "text":
-                return (
-                  <Markdown
-                    key={`${message.id}-${i}`}
-                    id={`${message.id}-${i}`}
-                    className="prose dark:prose-invert"
-                  >
-                    {part.text}
-                  </Markdown>
-                );
+                return <div key={`${message.id}-${i}`}>{part.text}</div>;
               case "tool-weather":
-              case "tool-convertFahrenheitToCelsius":
                 return (
                   <pre key={`${message.id}-${i}`}>
                     {JSON.stringify(part, null, 2)}
@@ -48,13 +29,7 @@ export default function Chat() {
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          sendMessage({
-            text: input,
-            // Pass session token for authentication
-            ...(session.data?.session?.id && {
-              sessionToken: session.data.session.id,
-            }),
-          });
+          sendMessage({ text: input });
           setInput("");
         }}
       >

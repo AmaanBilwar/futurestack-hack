@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
     // Fetch file contents and analyze each file
     const analysisResults = [];
-    
+
     for (const filePath of selectedFiles) {
       try {
         // Fetch file content from GitHub API
@@ -43,7 +43,10 @@ export async function POST(request: NextRequest) {
         });
 
         if (!fileResponse.ok) {
-          console.warn(`Failed to fetch file ${filePath}:`, fileResponse.status);
+          console.warn(
+            `Failed to fetch file ${filePath}:`,
+            fileResponse.status,
+          );
           analysisResults.push({
             path: filePath,
             analysis: `Failed to fetch file content: ${fileResponse.status}`,
@@ -100,19 +103,19 @@ export async function POST(request: NextRequest) {
           recommendations:
             "Review the analysis above for specific recommendations",
         });
-
       } catch (fileError) {
         console.error(`Error analyzing file ${filePath}:`, fileError);
         analysisResults.push({
           path: filePath,
-          analysis: `Error analyzing file: ${fileError instanceof Error ? fileError.message : 'Unknown error'}`,
-          recommendations: "Unable to provide recommendations due to analysis error",
+          analysis: `Error analyzing file: ${fileError instanceof Error ? fileError.message : "Unknown error"}`,
+          recommendations:
+            "Unable to provide recommendations due to analysis error",
         });
       }
     }
 
     // Create a summary
-    const summary = `Analysis completed for ${analysisResults.length} files in ${owner}/${repo}. ${analysisResults.filter(r => !r.analysis.includes('Error') && !r.analysis.includes('Failed')).length} files analyzed successfully.`;
+    const summary = `Analysis completed for ${analysisResults.length} files in ${owner}/${repo}. ${analysisResults.filter((r) => !r.analysis.includes("Error") && !r.analysis.includes("Failed")).length} files analyzed successfully.`;
 
     const result = {
       summary,

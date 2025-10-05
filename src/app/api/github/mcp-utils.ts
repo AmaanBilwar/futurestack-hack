@@ -29,6 +29,7 @@ export interface MCPAnalysisResult {
     recommendations: string;
   }>;
 }
+const META_MODEL = process.env.META_MODEL!;
 
 export async function initializeMCPClient(githubToken?: string) {
   console.log(
@@ -496,7 +497,7 @@ export async function discoverFilesWithMCP(
     const openRouter = createOpenRouter({
       apiKey: process.env.OPENROUTER_API_KEY!,
     });
-    const model = openRouter.chat("meta-llama/llama-4-scout");
+    const model = openRouter.chat(META_MODEL);
 
     // Use AI SDK with MCP tools to discover files
     const response = await generateText({
@@ -712,7 +713,7 @@ export async function analyzeFilesWithMCP(
     const openRouter = createOpenRouter({
       apiKey: process.env.OPENROUTER_API_KEY!,
     });
-    const model = openRouter.chat("meta-llama/llama-4-scout");
+    const model = openRouter.chat(META_MODEL);
 
     // Use AI SDK with MCP tools to analyze files
     const response = await generateText({

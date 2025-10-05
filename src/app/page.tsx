@@ -52,7 +52,7 @@ export default function SignInPage() {
           ) : null}
         </CardContent>
       </Card>
-      {session.data && <div>Signed in</div>}
+      {session.data ? <div>Signed in</div> : <div>Signed out</div>}
     </main>
   );
 }

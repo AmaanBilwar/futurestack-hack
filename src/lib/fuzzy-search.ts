@@ -1,7 +1,9 @@
 /**
- * Fuzzy search utility for filtering dropdown options
- * Provides fast, flexible text matching with scoring
+ * Fuzzy search utility using Fuse.js library
+ * Provides fast, flexible text matching with professional-grade scoring
  */
+
+import Fuse, { IFuseOptions } from "fuse.js";
 
 export interface FuzzySearchOptions {
   /** Whether to ignore case when matching */
@@ -12,6 +14,10 @@ export interface FuzzySearchOptions {
   threshold?: number;
   /** Whether to include the original item in the result */
   includeOriginal?: boolean;
+  /** Minimum query length before showing results */
+  minQueryLength?: number;
+  /** Fuse.js specific options */
+  fuseOptions?: IFuseOptions<any>;
 }
 
 export interface FuzzyMatch<T> {
@@ -26,118 +32,65 @@ export interface FuzzyMatch<T> {
 }
 
 /**
- * Calculate fuzzy match score between query and text
- * Uses a simple but effective algorithm based on character sequence matching
- */
-function calculateFuzzyScore(query: string, text: string, options: FuzzySearchOptions = {}): number {
-  const { ignoreCase = true, matchFromStart = false } = options;
-  
-  const q = ignoreCase ? query.toLowerCase() : query;
-  const t = ignoreCase ? text.toLowerCase() : text;
-  
-  if (q === t) return 1.0;
-  if (q.length === 0) return 0;
-  if (t.length === 0) return 0;
-  
-  // Exact substring match gets high score
-  if (t.includes(q)) {
-    const position = t.indexOf(q);
-    const startBonus = matchFromStart && position === 0 ? 0.2 : 0;
-    return 0.8 + startBonus + (1 - position / t.length) * 0.1;
-  }
-  
-  // Character sequence matching
-  let queryIndex = 0;
-  let score = 0;
-  let consecutiveMatches = 0;
-  let maxConsecutive = 0;
-  
-  for (let i = 0; i < t.length && queryIndex < q.length; i++) {
-    if (t[i] === q[queryIndex]) {
-      score += 1;
-      queryIndex++;
-      consecutiveMatches++;
-      maxConsecutive = Math.max(maxConsecutive, consecutiveMatches);
-    } else {
-      consecutiveMatches = 0;
-    }
-  }
-  
-  if (queryIndex < q.length) return 0; // Not all query characters found
-  
-  // Normalize score and add bonuses
-  const baseScore = score / q.length;
-  const consecutiveBonus = maxConsecutive / q.length * 0.3;
-  const lengthPenalty = Math.max(0, 1 - (t.length - q.length) / q.length * 0.1);
-  
-  return Math.min(1, baseScore + consecutiveBonus + lengthPenalty);
-}
-
-/**
- * Create highlighted text showing matched characters
- */
-function createHighlightedText(text: string, query: string, options: FuzzySearchOptions = {}): string {
-  const { ignoreCase = true } = options;
-  const q = ignoreCase ? query.toLowerCase() : query;
-  const t = ignoreCase ? text.toLowerCase() : text;
-  
-  if (q.length === 0) return text;
-  
-  let result = '';
-  let queryIndex = 0;
-  
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i];
-    const lowerChar = ignoreCase ? char.toLowerCase() : char;
-    
-    if (queryIndex < q.length && lowerChar === q[queryIndex]) {
-      result += `<mark class="bg-yellow-200 text-yellow-900 px-1 rounded">${char}</mark>`;
-      queryIndex++;
-    } else {
-      result += char;
-    }
-  }
-  
-  return result;
-}
-
-/**
- * Perform fuzzy search on an array of items
+ * Perform fuzzy search on an array of items using Fuse.js
  */
 export function fuzzySearch<T>(
   items: T[],
   query: string,
   getText: (item: T) => string,
-  options: FuzzySearchOptions = {}
+  options: FuzzySearchOptions = {},
 ): FuzzyMatch<T>[] {
   if (!query.trim()) {
-    return items.map(item => ({
+    return items.map((item) => ({
       item,
       text: getText(item),
       score: 1,
-      highlighted: options.includeOriginal ? getText(item) : undefined
+      highlighted: options.includeOriginal ? getText(item) : undefined,
     }));
   }
-  
-  const { threshold = 0.1 } = options;
-  const matches: FuzzyMatch<T>[] = [];
-  
-  for (const item of items) {
-    const text = getText(item);
-    const score = calculateFuzzyScore(query, text, options);
-    
-    if (score >= threshold) {
-      matches.push({
-        item,
-        text,
-        score,
-        highlighted: options.includeOriginal ? createHighlightedText(text, query, options) : undefined
-      });
-    }
+
+  const {
+    threshold = 0.3,
+    minQueryLength = 2,
+    ignoreCase = true,
+    matchFromStart = false,
+    fuseOptions = {},
+  } = options;
+
+  // Don't show results until minimum query length is reached
+  if (query.length < minQueryLength) {
+    return [];
   }
-  
-  // Sort by score (highest first)
-  return matches.sort((a, b) => b.score - a.score);
+
+  // Create Fuse.js instance with optimized options
+  const fuse = new Fuse(items, {
+    keys: [
+      {
+        name: "searchText",
+        getFn: getText,
+      },
+    ],
+    threshold: threshold,
+    includeScore: true,
+    includeMatches: false,
+    shouldSort: true,
+    ignoreLocation: !matchFromStart,
+    isCaseSensitive: !ignoreCase,
+    minMatchCharLength: 1,
+    findAllMatches: false,
+    ...fuseOptions,
+  });
+
+  // Perform search
+  const results = fuse.search(query);
+
+  // Transform results to match our interface
+  return results.map((result) => ({
+    item: result.item,
+    text: getText(result.item),
+    score: result.score ? 1 - result.score : 0, // Convert Fuse score (0-1, lower is better) to our format (0-1, higher is better)
+    highlighted: options.includeOriginal ? getText(result.item) : undefined,
+  }));
 }
 
 /**
@@ -146,21 +99,21 @@ export function fuzzySearch<T>(
 export function useFuzzySearch<T>(
   items: T[],
   getText: (item: T) => string,
-  options: FuzzySearchOptions = {}
+  options: FuzzySearchOptions = {},
 ) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<FuzzyMatch<T>[]>([]);
-  
+
   useEffect(() => {
     const results = fuzzySearch(items, query, getText, options);
     setMatches(results);
   }, [items, query, getText, JSON.stringify(options)]);
-  
+
   return {
     query,
     setQuery,
     matches,
-    clearQuery: () => setQuery('')
+    clearQuery: () => setQuery(""),
   };
 }
 
@@ -168,13 +121,13 @@ export function useFuzzySearch<T>(
  * Utility function to get searchable text from different item types
  */
 export const getSearchableText = {
-  repo: (repo: { full_name: string; name: string; owner: { login: string } }) => 
+  repo: (repo: { full_name: string; name: string; owner: { login: string } }) =>
     `${repo.full_name} ${repo.name} ${repo.owner.login}`,
-  
+
   branch: (branch: { name: string }) => branch.name,
-  
-  file: (file: { name: string; path: string }) => `${file.name} ${file.path}`
+
+  file: (file: { name: string; path: string }) => `${file.name} ${file.path}`,
 };
 
 // Re-export React hooks for convenience
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";

@@ -5,7 +5,8 @@ const openRouter = createOpenRouter({
   apiKey: process.env.OPENROUTER_API_KEY!,
 });
 
-const model = openRouter.chat("meta-llama/llama-4-scout");
+const META_MODEL = process.env.META_MODEL!;
+const model = openRouter.chat(META_MODEL);
 
 export async function performCodeReview(code: string, fileName?: string) {
   try {
@@ -30,10 +31,24 @@ export async function performCodeReview(code: string, fileName?: string) {
    - Design patterns usage
    - Code maintainability
 
-4. **Suggestions for Improvement**
-   - Specific refactoring suggestions
-   - Optimization opportunities
-   - Better approaches
+4. **REQUIRED: Refactor Suggestions**
+   - You MUST provide at least 2-5 specific refactoring suggestions
+   - Each suggestion should be actionable and include:
+     * Clear description of what to refactor
+     * Why it should be refactored
+     * Expected improvement/benefit
+   - Format refactor suggestions in a clear "## Refactor Suggestions" section
+   - Be specific about line numbers or code sections when possible
+   - Prioritize suggestions by impact (high/medium/low)
+
+IMPORTANT: Always include refactor suggestions even if the code is already good. There's always room for improvement in areas like:
+- Code clarity and readability
+- Performance optimizations
+- Modern language features adoption
+- Better error handling
+- Enhanced type safety
+- Improved naming
+- Better separation of concerns
 
 Provide a clear, actionable analysis that would help a developer improve the code.`,
       prompt: `Please analyze the following code${fileName ? ` from file: ${fileName}` : ""}:
@@ -42,7 +57,7 @@ Provide a clear, actionable analysis that would help a developer improve the cod
 ${code}
 \`\`\`
 
-Provide a comprehensive code review with specific, actionable feedback.`,
+Provide a comprehensive code review with specific, actionable feedback. Remember to ALWAYS include a "## Refactor Suggestions" section with at least 2-5 specific refactoring recommendations.`,
     });
 
     return text;
@@ -65,7 +80,7 @@ export async function generateUnitTests(
       model: model,
       system: `You are an expert test engineer. Generate unit tests based on the provided code and its analysis.
 
-IMPORTANT: Return ONLY the unit test code. Do not include any explanations, comments about the code, or additional text. Just return the pure unit test code that can be directly executed.
+IMPORTANT: Return ONLY the unit test code. Do not include any explanations, comments about the code, or additional text. Do not include markdown code block syntax (like \`\`\`typescript or \`\`\`javascript). Just return the pure unit test code that can be directly executed.
 
 Your task is to:
 1. Analyze the code structure and identify all testable functions/methods
@@ -85,7 +100,7 @@ Generate tests that are:
 - Cover both positive and negative test cases
 - Address any specific concerns from the analysis
 
-Return ONLY the executable unit test code.`,
+Return ONLY the executable unit test code without any markdown formatting.`,
       prompt: `Generate unit tests for the following code${fileName ? ` from file: ${fileName}` : ""}:
 
 **Original Code:**
@@ -96,10 +111,13 @@ ${code}
 **Code Analysis Notes:**
 ${analysis}
 
-Return ONLY the unit test code. Include imports, test setup, and all test cases. Do not include any explanations or additional text.`,
+Return ONLY the unit test code. Include imports, test setup, and all test cases. Do not include any explanations, additional text, or markdown formatting.`,
     });
 
-    return text;
+    // Clean the generated text by removing any markdown code block syntax
+    const cleanedText = cleanMarkdownSyntax(text);
+
+    return cleanedText;
   } catch (error) {
     console.error("Unit test generation error:", error);
     throw new Error(
@@ -107,4 +125,23 @@ Return ONLY the unit test code. Include imports, test setup, and all test cases.
         (error instanceof Error ? error.message : "Unknown error"),
     );
   }
+}
+
+function cleanMarkdownSyntax(text: string): string {
+  // Remove markdown code block syntax from the beginning and end
+  let cleaned = text.trim();
+
+  // Remove opening code block syntax (```typescript, ```javascript, ```, etc.)
+  cleaned = cleaned.replace(/^```[a-zA-Z]*\n?/gm, "");
+
+  // Remove closing code block syntax (```)
+  cleaned = cleaned.replace(/\n?```$/gm, "");
+
+  // Remove any remaining markdown syntax at the beginning
+  cleaned = cleaned.replace(/^```[a-zA-Z]*\s*/gm, "");
+
+  // Clean up any extra whitespace
+  cleaned = cleaned.trim();
+
+  return cleaned;
 }
