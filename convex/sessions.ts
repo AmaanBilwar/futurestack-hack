@@ -7,13 +7,17 @@ export const createSession = mutation({
     name: v.string(),
     description: v.optional(v.string()),
     userId: v.optional(v.string()),
-    metadata: v.optional(v.object({
-      fileCount: v.optional(v.number()),
-      analysisCount: v.optional(v.number()),
-      testCount: v.optional(v.number()),
-      sourceType: v.optional(v.union(v.literal("upload"), v.literal("github"))),
-      githubRepo: v.optional(v.string()),
-    })),
+    metadata: v.optional(
+      v.object({
+        fileCount: v.optional(v.number()),
+        analysisCount: v.optional(v.number()),
+        testCount: v.optional(v.number()),
+        sourceType: v.optional(
+          v.union(v.literal("upload"), v.literal("github")),
+        ),
+        githubRepo: v.optional(v.string()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const now = Date.now();
@@ -43,7 +47,7 @@ export const getUserSessions = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     if (!args.userId) return [];
-    
+
     return await ctx.db
       .query("sessions")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -57,11 +61,11 @@ export const getActiveSessions = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     if (!args.userId) return [];
-    
+
     return await ctx.db
       .query("sessions")
-      .withIndex("by_user_and_status", (q) => 
-        q.eq("userId", args.userId).eq("status", "active")
+      .withIndex("by_user_and_status", (q) =>
+        q.eq("userId", args.userId).eq("status", "active"),
       )
       .order("desc")
       .collect();
@@ -86,7 +90,7 @@ export const getSessionWithFiles = query({
       sessionFiles.map(async (sessionFile) => {
         const file = await ctx.db.get(sessionFile.fileId);
         return file ? { ...file, addedAt: sessionFile.addedAt } : null;
-      })
+      }),
     );
 
     // Get analyses for files in this session
@@ -99,7 +103,7 @@ export const getSessionWithFiles = query({
           .order("desc")
           .first();
         return analysis;
-      })
+      }),
     );
 
     // Get unit tests for analyses in this session
@@ -112,7 +116,7 @@ export const getSessionWithFiles = query({
           .order("desc")
           .first();
         return unitTest;
-      })
+      }),
     );
 
     return {
@@ -134,8 +138,8 @@ export const addFileToSession = mutation({
     // Check if file is already in session
     const existing = await ctx.db
       .query("sessionFiles")
-      .withIndex("by_session_and_file", (q) => 
-        q.eq("sessionId", args.sessionId).eq("fileId", args.fileId)
+      .withIndex("by_session_and_file", (q) =>
+        q.eq("sessionId", args.sessionId).eq("fileId", args.fileId),
       )
       .first();
 
@@ -153,10 +157,12 @@ export const addFileToSession = mutation({
     // Update session metadata
     const session = await ctx.db.get(args.sessionId);
     if (session) {
-      const fileCount = (await ctx.db
-        .query("sessionFiles")
-        .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
-        .collect()).length;
+      const fileCount = (
+        await ctx.db
+          .query("sessionFiles")
+          .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+          .collect()
+      ).length;
 
       await ctx.db.patch(args.sessionId, {
         updatedAt: Date.now(),
@@ -180,8 +186,8 @@ export const removeFileFromSession = mutation({
   handler: async (ctx, args) => {
     const sessionFile = await ctx.db
       .query("sessionFiles")
-      .withIndex("by_session_and_file", (q) => 
-        q.eq("sessionId", args.sessionId).eq("fileId", args.fileId)
+      .withIndex("by_session_and_file", (q) =>
+        q.eq("sessionId", args.sessionId).eq("fileId", args.fileId),
       )
       .first();
 
@@ -191,10 +197,12 @@ export const removeFileFromSession = mutation({
       // Update session metadata
       const session = await ctx.db.get(args.sessionId);
       if (session) {
-        const fileCount = (await ctx.db
-          .query("sessionFiles")
-          .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
-          .collect()).length;
+        const fileCount = (
+          await ctx.db
+            .query("sessionFiles")
+            .withIndex("by_session", (q) => q.eq("sessionId", args.sessionId))
+            .collect()
+        ).length;
 
         await ctx.db.patch(args.sessionId, {
           updatedAt: Date.now(),
@@ -214,18 +222,28 @@ export const updateSession = mutation({
     sessionId: v.id("sessions"),
     name: v.optional(v.string()),
     description: v.optional(v.string()),
-    status: v.optional(v.union(v.literal("active"), v.literal("completed"), v.literal("archived"))),
-    metadata: v.optional(v.object({
-      fileCount: v.optional(v.number()),
-      analysisCount: v.optional(v.number()),
-      testCount: v.optional(v.number()),
-      sourceType: v.optional(v.union(v.literal("upload"), v.literal("github"))),
-      githubRepo: v.optional(v.string()),
-    })),
+    status: v.optional(
+      v.union(
+        v.literal("active"),
+        v.literal("completed"),
+        v.literal("archived"),
+      ),
+    ),
+    metadata: v.optional(
+      v.object({
+        fileCount: v.optional(v.number()),
+        analysisCount: v.optional(v.number()),
+        testCount: v.optional(v.number()),
+        sourceType: v.optional(
+          v.union(v.literal("upload"), v.literal("github")),
+        ),
+        githubRepo: v.optional(v.string()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const { sessionId, ...updates } = args;
-    
+
     await ctx.db.patch(sessionId, {
       ...updates,
       updatedAt: Date.now(),
@@ -260,7 +278,7 @@ export const getSessionHistory = query({
   },
   handler: async (ctx, args) => {
     const limit = args.limit || 20;
-    
+
     if (!args.userId) {
       return await ctx.db
         .query("sessions")

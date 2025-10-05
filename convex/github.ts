@@ -14,21 +14,24 @@ export const getGithubToken = query({
 
     try {
       // Query the betterAuth component for GitHub account using the adapter
-      const account = await ctx.runQuery(components.betterAuth.adapter.findOne, {
-        model: "account",
-        where: [
-          {
-            field: "userId",
-            operator: "eq",
-            value: user._id,
-          },
-          {
-            field: "providerId", 
-            operator: "eq",
-            value: "github",
-          },
-        ],
-      });
+      const account = await ctx.runQuery(
+        components.betterAuth.adapter.findOne,
+        {
+          model: "account",
+          where: [
+            {
+              field: "userId",
+              operator: "eq",
+              value: user._id,
+            },
+            {
+              field: "providerId",
+              operator: "eq",
+              value: "github",
+            },
+          ],
+        },
+      );
 
       return account?.accessToken ?? null;
     } catch (error) {

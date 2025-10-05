@@ -10,12 +10,14 @@ export default defineSchema({
     size: v.number(),
     userId: v.optional(v.string()),
     uploadedAt: v.number(),
-    metadata: v.optional(v.object({
-      language: v.optional(v.string()),
-      extension: v.optional(v.string()),
-      lines: v.optional(v.number()),
-      characters: v.optional(v.number()),
-    })),
+    metadata: v.optional(
+      v.object({
+        language: v.optional(v.string()),
+        extension: v.optional(v.string()),
+        lines: v.optional(v.number()),
+        characters: v.optional(v.number()),
+      }),
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_uploaded_at", ["uploadedAt"])
@@ -26,7 +28,11 @@ export default defineSchema({
     fileId: v.id("files"),
     fileName: v.string(),
     analysis: v.string(),
-    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("error"),
+    ),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
     userId: v.optional(v.string()),
@@ -42,7 +48,11 @@ export default defineSchema({
     analysisId: v.id("analyses"),
     fileName: v.string(),
     unitTests: v.string(),
-    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("error"),
+    ),
     createdAt: v.number(),
     completedAt: v.optional(v.number()),
     userId: v.optional(v.string()),
@@ -60,14 +70,22 @@ export default defineSchema({
     userId: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
-    status: v.union(v.literal("active"), v.literal("completed"), v.literal("archived")),
-    metadata: v.optional(v.object({
-      fileCount: v.optional(v.number()),
-      analysisCount: v.optional(v.number()),
-      testCount: v.optional(v.number()),
-      sourceType: v.optional(v.union(v.literal("upload"), v.literal("github"))),
-      githubRepo: v.optional(v.string()),
-    })),
+    status: v.union(
+      v.literal("active"),
+      v.literal("completed"),
+      v.literal("archived"),
+    ),
+    metadata: v.optional(
+      v.object({
+        fileCount: v.optional(v.number()),
+        analysisCount: v.optional(v.number()),
+        testCount: v.optional(v.number()),
+        sourceType: v.optional(
+          v.union(v.literal("upload"), v.literal("github")),
+        ),
+        githubRepo: v.optional(v.string()),
+      }),
+    ),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
@@ -94,6 +112,5 @@ export default defineSchema({
       theme: v.optional(v.string()),
     }),
     updatedAt: v.number(),
-  })
-    .index("by_user", ["userId"]),
+  }).index("by_user", ["userId"]),
 });

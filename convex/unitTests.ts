@@ -8,7 +8,11 @@ export const createUnitTest = mutation({
     analysisId: v.id("analyses"),
     fileName: v.string(),
     unitTests: v.string(),
-    status: v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    status: v.union(
+      v.literal("pending"),
+      v.literal("completed"),
+      v.literal("error"),
+    ),
     userId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -31,15 +35,17 @@ export const updateUnitTest = mutation({
   args: {
     unitTestId: v.id("unitTests"),
     unitTests: v.optional(v.string()),
-    status: v.optional(v.union(v.literal("pending"), v.literal("completed"), v.literal("error"))),
+    status: v.optional(
+      v.union(v.literal("pending"), v.literal("completed"), v.literal("error")),
+    ),
   },
   handler: async (ctx, args) => {
     const updates: any = {};
-    
+
     if (args.unitTests !== undefined) {
       updates.unitTests = args.unitTests;
     }
-    
+
     if (args.status !== undefined) {
       updates.status = args.status;
       if (args.status === "completed") {
@@ -88,7 +94,7 @@ export const getUserUnitTests = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     if (!args.userId) return [];
-    
+
     return await ctx.db
       .query("unitTests")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))

@@ -16,12 +16,14 @@ export const saveFileWithStorageId = mutation({
     type: v.string(),
     size: v.number(),
     userId: v.optional(v.string()),
-    metadata: v.optional(v.object({
-      language: v.optional(v.string()),
-      extension: v.optional(v.string()),
-      lines: v.optional(v.number()),
-      characters: v.optional(v.number()),
-    })),
+    metadata: v.optional(
+      v.object({
+        language: v.optional(v.string()),
+        extension: v.optional(v.string()),
+        lines: v.optional(v.number()),
+        characters: v.optional(v.number()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     const fileId = await ctx.db.insert("files", {
@@ -45,17 +47,19 @@ export const createFile = mutation({
     type: v.string(),
     size: v.number(),
     userId: v.optional(v.string()),
-    metadata: v.optional(v.object({
-      language: v.optional(v.string()),
-      extension: v.optional(v.string()),
-      lines: v.optional(v.number()),
-      characters: v.optional(v.number()),
-    })),
+    metadata: v.optional(
+      v.object({
+        language: v.optional(v.string()),
+        extension: v.optional(v.string()),
+        lines: v.optional(v.number()),
+        characters: v.optional(v.number()),
+      }),
+    ),
   },
   handler: async (ctx, args) => {
     // TODO: Fix storage API - temporarily using a placeholder storage ID
     const storageId = "placeholder" as any;
-    
+
     const fileId = await ctx.db.insert("files", {
       name: args.name,
       storageId: storageId,
@@ -99,7 +103,7 @@ export const getUserFiles = query({
   args: { userId: v.optional(v.string()) },
   handler: async (ctx, args) => {
     if (!args.userId) return [];
-    
+
     return await ctx.db
       .query("files")
       .withIndex("by_user", (q) => q.eq("userId", args.userId))
@@ -130,7 +134,7 @@ export const deleteFile = mutation({
       .query("analyses")
       .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
       .collect();
-    
+
     const unitTests = await ctx.db
       .query("unitTests")
       .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
@@ -140,7 +144,7 @@ export const deleteFile = mutation({
     for (const analysis of analyses) {
       await ctx.db.delete(analysis._id);
     }
-    
+
     for (const unitTest of unitTests) {
       await ctx.db.delete(unitTest._id);
     }
@@ -150,7 +154,7 @@ export const deleteFile = mutation({
       .query("sessionFiles")
       .withIndex("by_file", (q) => q.eq("fileId", args.fileId))
       .collect();
-    
+
     for (const sessionFile of sessionFiles) {
       await ctx.db.delete(sessionFile._id);
     }
@@ -188,9 +192,9 @@ export const searchFiles = query({
   handler: async (ctx, args) => {
     const limit = args.limit || 20;
     const searchTerm = args.query.toLowerCase();
-    
+
     let allFiles;
-    
+
     if (args.userId) {
       allFiles = await ctx.db
         .query("files")
@@ -202,12 +206,12 @@ export const searchFiles = query({
         .withIndex("by_uploaded_at")
         .collect();
     }
-    
+
     // Filter files by name containing the search term
-    const filteredFiles = allFiles.filter(file => 
-      file.name.toLowerCase().includes(searchTerm)
+    const filteredFiles = allFiles.filter((file) =>
+      file.name.toLowerCase().includes(searchTerm),
     );
-    
+
     return filteredFiles
       .sort((a, b) => b.uploadedAt - a.uploadedAt)
       .slice(0, limit);
