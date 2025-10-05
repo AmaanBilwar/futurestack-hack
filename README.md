@@ -2,8 +2,7 @@
 
 Your AI-assisted code review, unit-test generation, and automated refactoring workflow — designed to slash review toil so developers can focus on shipping.
 
-Deployed: [codemarshall.vercel.app](https://codemarshall.vercel.app/)  
-Reference: `https://codemarshall.vercel.app/`
+Website live at: [codemarshall.vercel.app](https://codemarshall.vercel.app/)  
 
 ### Why this matters (Potential Impact)
 - **Problem**: Developers spend significant time reading, reviewing, and writing tests — work that is critical but repetitive and slow.
@@ -50,12 +49,38 @@ Reference: `https://codemarshall.vercel.app/`
 Create a `.env.local` file in the project root with:
 
 ```env
-OPENROUTER_API_KEY=your_openrouter_key
-META_MODEL=llama-4-scout
-NEXT_PUBLIC_CONVEX_URL=your_convex_deployment_url
-# Optional, enables faster MCP-based refactors if configured
-MORPHLLM_API_KEY=your_morph_api_key
+SITE_URL=http://localhost:3000
+CONVEX_SITE_URL=http://localhost:3000
+
+# Convex
+# Example dev deployment: dev:your-deployment-name
+CONVEX_DEPLOYMENT=
+NEXT_PUBLIC_CONVEX_URL=
+NEXT_PUBLIC_CONVEX_SITE_URL=
+
+# Better Auth (generate a strong random 32-byte base64 string)
+BETTER_AUTH_SECRET=replace-with-random-32-bytes-base64
+
+# GitHub OAuth (must match the GitHub OAuth App for this environment)
+# For local GitHub app: Authorization callback URL must be:
+#   http://localhost:3000/api/auth/callback/github
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Optional: Personal Access Token (if your app uses it)
+GITHUB_PAT=
+
+# AI providers (set whichever you use)
+OPENROUTER_API_KEY=
+OPENAI_API_KEY=
+
+# Optional: MorphLLM
+MORPHLLM_API_KEY=
+
+# Default model selection
+META_MODEL=meta-llama/llama-4-scout
 ```
+
 
 Note: This is an open-source project. Teams may self‑host and plug in their own auth config as needed.
 
@@ -98,7 +123,7 @@ Open `http://localhost:3000` and sign in with GitHub.
 - GitHub MCP for refactor application
 
 ### Live demo
-- Visit the deployed app: [codemarshall.vercel.app](https://codemarshall.vercel.app/)
+- Visit the deployed app: [codemarshall.onrender.com](https://codemarshall.onrender.com)
 
 
 ### Acknowledgements
