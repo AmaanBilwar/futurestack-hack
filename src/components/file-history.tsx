@@ -153,7 +153,7 @@ export default function FileHistory({
     });
 
   const languages = Array.from(
-    new Set(files.map((f) => f.metadata?.language).filter(Boolean))
+    new Set(files.map((f) => f.metadata?.language).filter(Boolean)),
   );
 
   const getFileIcon = (fileName: string, language?: string) => {

@@ -2,6 +2,7 @@
 
 import { useChat } from "@ai-sdk/react";
 import { useState } from "react";
+import { Markdown } from "@/components/ui/markdown";
 import { authClient } from "@/lib/auth-client";
 
 export default function Chat() {
@@ -16,12 +17,22 @@ export default function Chat() {
   return (
     <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
       {messages.map((message) => (
-        <div key={message.id} className="whitespace-pre-wrap">
-          {message.role === "user" ? "User: " : "AI: "}
+        <div key={message.id} className="space-y-1">
+          <div className="text-xs text-muted-foreground">
+            {message.role === "user" ? "User" : "AI"}
+          </div>
           {message.parts.map((part, i) => {
             switch (part.type) {
               case "text":
-                return <div key={`${message.id}-${i}`}>{part.text}</div>;
+                return (
+                  <Markdown
+                    key={`${message.id}-${i}`}
+                    id={`${message.id}-${i}`}
+                    className="prose dark:prose-invert"
+                  >
+                    {part.text}
+                  </Markdown>
+                );
               case "tool-weather":
               case "tool-convertFahrenheitToCelsius":
                 return (

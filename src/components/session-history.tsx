@@ -106,7 +106,7 @@ export default function SessionHistory({
 
   const handleUpdateSessionStatus = async (
     sessionId: string,
-    status: "active" | "completed" | "archived"
+    status: "active" | "completed" | "archived",
   ) => {
     try {
       const response = await fetch("/api/sessions", {
@@ -117,7 +117,7 @@ export default function SessionHistory({
 
       if (response.ok) {
         setSessions(
-          sessions.map((s) => (s._id === sessionId ? { ...s, status } : s))
+          sessions.map((s) => (s._id === sessionId ? { ...s, status } : s)),
         );
       }
     } catch (error) {
@@ -382,7 +382,7 @@ export default function SessionHistory({
                             onClick={() =>
                               handleUpdateSessionStatus(
                                 session._id,
-                                "completed"
+                                "completed",
                               )
                             }
                           >
