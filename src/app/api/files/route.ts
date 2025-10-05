@@ -88,25 +88,29 @@ export async function GET(request: NextRequest) {
     const fileId = searchParams.get("fileId");
     const storageId = searchParams.get("storageId");
 
-    // If requesting specific file content
+    // If requesting specific file content by storageId
     if (storageId) {
-      const content = await convex.query(api.files.getFileContent, {
+      const url = await convex.query(api.files.getFileUrl, {
         storageId: storageId as any,
       });
 
-      if (content && typeof content === "object" && "arrayBuffer" in content) {
-        const arrayBuffer = await (content as any).arrayBuffer();
-        const text = new TextDecoder().decode(arrayBuffer);
-        return NextResponse.json(
-          {
-            success: true,
-            content: text,
-          },
-          { status: 200 },
-        );
-      } else {
+      if (!url) {
         return NextResponse.json({ error: "File not found" }, { status: 404 });
       }
+
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        return NextResponse.json({ error: "Failed to fetch file" }, { status: 502 });
+      }
+
+      const text = await resp.text();
+      return NextResponse.json(
+        {
+          success: true,
+          content: text,
+        },
+        { status: 200 },
+      );
     }
 
     // If requesting specific file metadata
