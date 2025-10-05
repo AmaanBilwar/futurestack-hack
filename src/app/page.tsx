@@ -35,7 +35,8 @@ export default function SignInPage() {
   };
 
   return (
-    <main className="min-h-screen w-full flex items-center justify-center p-6">
+    <main className="min-h-screen w-full flex flex-col items-center justify-center p-6">
+      <h1 className="text-2xl font-bold mb-6">Welcome to CodeMarshall</h1>
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Sign in</CardTitle>
@@ -52,7 +53,6 @@ export default function SignInPage() {
           ) : null}
         </CardContent>
       </Card>
-      {session.data ? <div>Signed in</div> : <div>Signed out</div>}
     </main>
   );
 }
