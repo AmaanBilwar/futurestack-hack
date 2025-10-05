@@ -122,9 +122,9 @@ Open `http://localhost:3000` and sign in with GitHub.
 - GitHub MCP for refactor application
 
 ### Live demo
-- Visit the deployed app: [codemarshall.onrender.com](https://codemarshall.onrender.com)
+- Visit the deployed app: [codemarshall.vercel.app](https://codemarshall.vercel.app)
 
-> chances are this deployment isnt working because vercel and github are not friends, so youre gonna have to test it our locally. Sorry for the inconvenience, but I cant do much if Github cant solve 2 year old issues with OAuth apps  
+> chances are this deployment isnt working because vercel and github are not friends, so youre gonna have to test it out locally. Sorry for the inconvenience, but I cant do much if Github cant solve 2 year old issues with OAuth apps  
 ### Acknowledgements
 - Thanks to the broader OSS ecosystem, Vercel AI SDK, OpenRouter, and Convex for enabling rapid iteration.
 
