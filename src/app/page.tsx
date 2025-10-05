@@ -25,6 +25,7 @@ export default function SignInPage() {
       await authClient.signIn.social({
         provider: "github",
         callbackURL: "/dashboard",
+        scopes: ["repo", "read:org", "read:user", "user:email"],
       });
     } catch (err: any) {
       setError(err?.message ?? "Something went wrong");
